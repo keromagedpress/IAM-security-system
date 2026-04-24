@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block title %}Anomaly Monitoring{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <header class="header">
+        <div>
+            <h1>Threat Monitoring</h1>
+            <p class="text-secondary">Real-time detection of brute-force attempts and system anomalies.</p>
+        </div>
+    </header>
+
+    <script>
+    function runThreatScan() {
+        const btn = document.getElementById('threat-scan-btn');
+        const originalHtml = btn.innerHTML;
+        
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Scanning Logs...';
+        
+        fetch("{{ url_for('main.api_run_threat_scan') }}", { method: 'POST' })
+            .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        window.location.reload();
+                    } else {
+                        alert("Scan Failed: " + data.message);
+                        btn.disabled = false;
+                        btn.innerHTML = originalHtml;
+                    }
+                })
+                .catch(err => {
+                    console.error("Scan error:", err);
+                    alert("System failure during threat scan.");
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                });
+    }
+    </script>
+
+    {% if not anomalies %}
+    <div class="row mb-6 mt-4">
+        <div class="col-12">
+            <div class="card glass-card p-4 d-flex flex-row justify-content-between align-items-center animate-fade-in">
+                <div>
+                    <h5 class="m-0 font-weight-bold">Heuristic Intelligence Engine</h5>
+                    <p class="text-xs text-slate-400 m-0">Run an AI-powered batch scan to identify hidden security patterns (Brute Force, Credential Stuffing, ATO).</p>
+                </div>
+                <button id="threat-scan-btn" onclick="runThreatScan()" class="btn btn-primary bg-blue-600 hover:bg-blue-500 border-0 px-4 py-2 text-sm font-weight-semibold shadow-lg shadow-blue-900/20">
+                    <i class="fas fa-microchip me-2"></i> Run AI Threat Scan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Anomalies Table -->
+    <div class="card glass-card animate-slide-in">
+        <div class="mb-4">
+            <i class="fas fa-shield-check text-emerald-500 h1"></i>
+        </div>
+        <h2 class="h5 font-weight-bold">System Status: SECURE</h2>
+        <p class="text-secondary font-size-sm">No unresolved security anomalies detected in the current namespace.</p>
+    </div>
+    {% else %}
+    <div class="card p-0 overflow-hidden">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Threat Category</th>
+                        <th style="text-align: center;">Severity</th>
+                        <th>Attribution (User/IP)</th>
+                        <th>AI Security Advice</th>
+                        <th>Detection Time</th>
+                        <th style="text-align: right;">Response</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for anomaly in anomalies %}
+                    <tr class="alert-row-{{ anomaly.severity }}">
+                        <td class="font-weight-bold">
+                            <i class="fas fa-bolt-lightning text-amber-400 mr-2"></i>
+                            {{ anomaly.type|replace('_', ' ')|upper }}
+                        </td>
+                        <td style="text-align: center;">
+                            <span class="badge badge-{{ anomaly.severity }} {{ 'pulse' if anomaly.severity in ['high', 'critical'] else '' }}">
+                                {{ anomaly.severity|upper }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex flex-column">
+                                <span class="font-weight-medium">{{ anomaly.username or 'SYSTEM' }}</span>
+                                <span class="text-secondary font-mono font-size-xs">{{ anomaly.ip_address }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="text-secondary" style="font-size: 0.8rem; font-style: italic; max-width: 250px; line-height: 1.2;">
+                                {{ anomaly.response_note or 'No specific advice available.' }}
+                            </div>
+                        </td>
+                        <td class="text-secondary font-size-sm">
+                            <i class="far fa-clock mr-1"></i>
+                            {{ anomaly.flagged_at.strftime('%Y-%m-%d %H:%M') if anomaly.flagged_at else 'N/A' }}
+                        </td>
+                        <td style="text-align: right;">
+                            <a href="{{ url_for('main.resolve_flag', anomaly_id=anomaly.id) }}" class="btn text-emerald-400 border border-emerald-500/30" style="padding: 0.5rem 1rem; width: auto; font-size: 0.75rem; text-decoration: none; border-radius: 8px; font-weight: 600;">
+                                <i class="fas fa-check-double mr-1"></i> RESOLVE
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

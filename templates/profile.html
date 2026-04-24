@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}System Profile{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <header class="header">
+        <div>
+            <h1>Identity & Security</h1>
+            <p class="text-secondary">Manage your administrative profile and review your security clearance.</p>
+        </div>
+    </header>
+
+    <div class="card p-0 overflow-hidden" style="max-width: 800px; margin: 0 auto; background: var(--bg-card); backdrop-filter: blur(24px); border: 1px solid var(--border-color); border-radius: 24px;">
+        <div class="p-8 text-center border-bottom border-white/5 bg-slate-800/20">
+            <div class="avatar-large mx-auto mb-6 bg-blue-600 text-white rounded-circle d-flex align-items-center justify-content-center shadow-lg" style="width: 100px; height: 100px; font-size: 3rem;">
+                <i class="fas fa-user-shield"></i>
+            </div>
+            <h2 class="h3 font-weight-bold mb-1">{{ session.get('username') }}</h2>
+            <p class="text-blue-400 font-weight-bold text-uppercase tracking-widest font-size-xs">
+                {{ session.get('user_role') }} LEVEL CLEARANCE
+            </p>
+        </div>
+
+        <div class="p-8">
+            <div class="row g-6" style="display: flex; gap: 2rem; margin-bottom: 2rem;">
+                <!-- Security Info -->
+                <div style="flex: 1;">
+                    <h3 class="font-size-sm font-weight-bold text-secondary text-uppercase mb-4">Security Credentials</h3>
+                    <div style="margin-bottom: 1.5rem;">
+                        <label class="font-size-xs text-secondary d-block mb-1">Identity UID</label>
+                        <div class="font-mono text-white font-size-sm" style="word-break: break-all;">{{ session.get('user_id') }}</div>
+                    </div>
+                    <div>
+                        <label class="font-size-xs text-secondary d-block mb-1">Assigned Role</label>
+                        <span class="badge badge-low">{{ session.get('user_role')|upper }}</span>
+                    </div>
+                </div>
+
+                <!-- Session Info -->
+                <div style="flex: 1;">
+                    <h3 class="font-size-sm font-weight-bold text-secondary text-uppercase mb-4">Current Session</h3>
+                    <div style="margin-bottom: 1.5rem;">
+                        <label class="font-size-xs text-secondary d-block mb-1">Source IP Address</label>
+                        <div class="font-mono text-white font-size-sm">{{ request.remote_addr }}</div>
+                    </div>
+                    <div>
+                        <label class="font-size-xs text-secondary d-block mb-1">Authentication Type</label>
+                        <div class="text-emerald-400 font-size-sm font-weight-bold">STANDARD BCRYPT + MULTI-TENANT</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 pt-8 border-top border-white/5" style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 2rem;">
+                <div class="row align-items-center" style="display: flex; align-items: center; justify-content: space-between;">
+                    <div style="flex: 1;">
+                        <p class="text-secondary font-size-sm m-0">Your account is governed by federal access control policies and real-time anomaly monitoring.</p>
+                    </div>
+                    <div style="margin-left: 2rem;">
+                        <a href="{{ url_for('main.logout') }}" class="btn text-rose-400 border border-rose-500/30" style="width: auto; padding: 0.75rem 1.5rem; text-decoration: none; display: inline-block; border-radius: 12px; font-weight: 600;">
+                            TERMINATE SESSION
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

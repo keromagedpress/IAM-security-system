@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IAM Security - {% block title %}{% endblock %}</title>
+    
+    <!-- CSS Dependencies -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- JS Dependencies (CDNs) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        {% if session.get('user_id') %}
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <i class="fas fa-shield-halved"></i> IAM SECURITY
+            </div>
+            
+            <div class="user-profile-sm mb-6 p-4 rounded-xl bg-slate-800/30 border border-slate-700/50">
+                <div class="d-flex align-items-center">
+                    <div class="avatar-circle bg-blue-600 text-white rounded-circle d-flex align-items-center justify-content-center mr-3" style="width: 40px; height: 40px;">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <div>
+                        <div class="font-weight-bold text-white font-size-sm">{{ session.get('username') }}</div>
+                        <span class="badge bg-blue-600/20 text-blue-400 font-size-xs px-2 py-0.5 rounded-full border border-blue-500/30">
+                            {{ session.get('user_role')|upper }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <nav>
+                <ul class="nav-links list-unstyled">
+                    <li class="nav-item">
+                        <a href="{{ url_for('main.dashboard') }}" class="nav-link {{ 'active' if request.path == '/' else '' }}">
+                            <i class="fas fa-chart-pie"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('main.users') }}" class="nav-link {{ 'active' if request.path == '/users' else '' }}">
+                            <i class="fas fa-users-gear"></i> Users
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('main.logs') }}" class="nav-link {{ 'active' if 'logs' in request.path else '' }}">
+                            <i class="fas fa-file-shield"></i> Logs
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('main.anomalies') }}" class="nav-link {{ 'active' if 'anomalies' in request.path else '' }}">
+                            <i class="fas fa-triangle-exclamation"></i> Anomalies
+                        </a>
+                    </li>
+                    <li class="nav-divider border-t border-white/5 my-4"></li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('main.profile') }}" class="nav-link {{ 'active' if 'profile' in request.path else '' }}">
+                            <i class="fas fa-user-circle"></i> My Profile
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('main.logout') }}" class="nav-link text-red-400 hover:text-red-300">
+                            <i class="fas fa-power-off"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+        {% endif %}
+
+        <!-- Content Area -->
+        <main class="main-content flex-grow-1">
+            <div class="flash-messages position-fixed top-6 end-6 z-50">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="flash-alert p-4 rounded-xl shadow-2xl mb-4 card glass active animate-fade-in border-left-4 {{ 'border-emerald-500' if category == 'success' else 'border-rose-500' }}" style="min-width: 300px;">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas {{ 'fa-check-circle text-emerald-500' if category == 'success' else 'fa-exclamation-circle text-rose-500' }} mr-3 h4 mb-0"></i>
+                                    <span class="font-weight-medium">{{ message }}</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </div>
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        // Auto-hide alerts with smooth fade-out
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.flash-alert');
+            alerts.forEach(a => {
+                a.style.opacity = '0';
+                a.style.transform = 'translateY(-20px)';
+                a.style.transition = 'all 0.4s ease';
+                setTimeout(() => a.remove(), 400);
+            });
+        }, 5000);
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Activity Logs{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <header class="header">
+        <div>
+            <h1>Security Audit Trails</h1>
+            <p class="text-secondary">Comprehensive activity logging for forensic correlation and threat analysis.</p>
+        </div>
+    </header>
+
+    <div class="forensic-filter-bar">
+        <form action="{{ url_for('main.logs') }}" method="GET" style="display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: flex-end; width: 100%;">
+            <div class="filter-group">
+                <label class="filter-label">Identity Filter</label>
+                <input type="text" name="username" class="forensic-input" placeholder="Search username..." value="{{ request.args.get('username', '') }}">
+            </div>
+            
+            <div class="filter-group">
+                <label class="filter-label">Start Date</label>
+                <input type="date" name="start_date" class="forensic-input" value="{{ request.args.get('start_date', '') }}">
+            </div>
+            
+            <div class="filter-group">
+                <label class="filter-label">End Date</label>
+                <input type="date" name="end_date" class="forensic-input" value="{{ request.args.get('end_date', '') }}">
+            </div>
+            
+            <div style="display: flex; gap: 0.75rem;">
+                <button type="submit" class="btn-forensic">
+                    <i class="fas fa-filter"></i> APPLY FORENSIC FILTERS
+                </button>
+                {% if request.args.get('username') or request.args.get('start_date') or request.args.get('end_date') %}
+                    <a href="{{ url_for('main.logs') }}" class="btn text-secondary border border-white/10" style="height: 38px; display: flex; align-items: center; padding: 0 1rem; border-radius: 8px; text-decoration: none; font-size: 0.8rem; font-weight: 600;">
+                        CLEAR ALL
+                    </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <div class="card p-0 overflow-hidden">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Event Timestamp</th>
+                        <th>Identity</th>
+                        <th>Security Action</th>
+                        <th>Target Resource</th>
+                        <th>Source IP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if logs %}
+                        {% for log in logs %}
+                        <tr>
+                            <td class="font-mono text-secondary" style="font-size: 0.85rem;">{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') if log.created_at else 'N/A' }}</td>
+                            <td>
+                                <span class="badge {{ 'badge-low' if log.username else 'badge-medium' }}" style="background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: var(--text-primary);">
+                                    {{ log.username|upper or 'SYSTEM' }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="font-weight-bold" style="color: var(--accent-blue);">{{ log.action|upper }}</span>
+                            </td>
+                            <td class="text-secondary font-size-sm">{{ log.resource }}</td>
+                            <td class="font-mono text-secondary" style="font-size: 0.85rem;">{{ log.ip_address }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-12 text-secondary italic">No audit records found.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

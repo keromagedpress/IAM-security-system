@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block title %}User Management{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <header class="header">
+        <div>
+            <h1>User Governance</h1>
+            <p class="text-secondary">Manage system access, roles, and administrative statuses.</p>
+        </div>
+        <a href="{{ url_for('main.register') }}" class="btn btn-primary" style="width: auto;">
+            <i class="fas fa-user-plus"></i> New Identity
+        </a>
+    </header>
+
+    <div class="card p-0 overflow-hidden">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Identity</th>
+                        <th>Last Login</th>
+                        <th>Role Level</th>
+                        <th>Status</th>
+                        <th style="text-align: right;">Administrative Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user_item in users %}
+                    <tr>
+                        <td class="font-weight-bold">
+                            {{ user_item.username }}
+                            <div class="text-xs text-secondary font-weight-normal">{{ user_item.email }}</div>
+                        </td>
+                        <td>
+                            {% if user_item.last_login %}
+                            <div class="font-mono text-sm">{{ user_item.last_login.strftime('%Y-%m-%d %H:%M:%S') if
+                                user_item.last_login.strftime else user_item.last_login }}</div>
+                            {% else %}
+                            <span class="text-secondary small italic">Never logged in</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge {{ 'badge-high' if user_item.role == 'admin' else 'badge-low' }}">
+                                {{ user_item.role|upper or 'VIEWER' }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if user_item.is_active %}
+                            <span class="text-emerald-500 font-size-sm"><i class="fas fa-circle font-size-xs mr-1"></i>
+                                Active</span>
+                            {% else %}
+                            <span class="text-secondary font-size-sm"><i class="fas fa-circle font-size-xs mr-1"></i>
+                                Terminated</span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: right;">
+                            <div class="d-flex align-items-center justify-content-end gap-3">
+                                <a href="{{ url_for('main.toggle_user', user_id=user_item.id) }}"
+                                    class="btn {{ 'text-rose-400 border border-rose-500/30' if user_item.is_active else 'text-emerald-400 border border-emerald-500/30' }}"
+                                    style="padding: 0.5rem 1rem; width: auto; font-size: 0.75rem;">
+                                    {{ 'DEACTIVATE' if user_item.is_active else 'ACTIVATE' }}
+                                </a>
+
+                                <div class="d-flex align-items-center">
+                                    <select class="form-control"
+                                        style="width: 130px; font-size: 0.75rem; padding: 0.4rem;"
+                                        onchange="updateRole('{{ user_item.id }}', this.value)">
+                                        <option value="" disabled selected>SET ROLE</option>
+                                        {% for role in roles %}
+                                        <option value="{{ role.id }}" {{ 'selected' if user_item.role_id==role.id }}>{{
+                                            role.name|upper }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <button type="button" class="btn text-blue-400 border border-blue-500/30"
+                                    style="padding: 0.5rem; width: auto;"
+                                    onclick="promptReset('{{ user_item.username }}')">
+                                    <i class="fas fa-key"></i>
+                                </button>
+
+                                {% if session.get('user_role') == 'admin' %}
+                                <button type="button" class="btn text-rose-400 border border-rose-500/30"
+                                    style="padding: 0.5rem; width: auto;"
+                                    onclick="confirmDelete('{{ user_item.id }}', '{{ user_item.username }}')">
+                                    <i class="fas fa-trash-can"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function confirmDelete(userId, username) {
+        if (confirm(`Are you sure you want to remove ${username} from the system? This action cannot be undone.`)) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/users/delete/${userId}`;
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+    function updateRole(userId, newRoleId) {
+        if (!newRoleId) return;
+
+        fetch("{{ url_for('main.api_update_role') }}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                user_id: userId,
+                new_role_id: newRoleId
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Visual feedback: brief green glow on the row
+                    console.log(data.message);
+                    window.location.reload(); // Refresh to update badges/audit state
+                } else {
+                    alert("Error: " + data.message);
+                }
+            })
+            .catch(err => {
+                console.error("Role update failed:", err);
+                alert("System failure during role update.");
+            });
+    }
+
+    function promptReset(username) {
+        const newPass = prompt(`Enter new password for ${username}:`);
+        if (newPass) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{{ url_for('main.reset_password_route') }}";
+
+            const userInp = document.createElement('input');
+            userInp.type = 'hidden';
+            userInp.name = 'username';
+            userInp.value = username;
+
+            const passInp = document.createElement('input');
+            passInp.type = 'hidden';
+            passInp.name = 'new_password';
+            passInp.value = newPass;
+
+            form.appendChild(userInp);
+            form.appendChild(passInp);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+</script>
+{% endblock %}

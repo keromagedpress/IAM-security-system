@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Register Account{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-header">
+            <i class="fas fa-user-plus"></i>
+            <h1>IAM Security System</h1>
+            <p>Register as a new analyst</p>
+        </div>
+
+        <form method="POST">
+            <div class="form-group">
+                <label class="form-label" for="username">Username</label>
+                <input type="text" id="username" name="username" class="form-control" placeholder="Unique identifier" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="email">Email Address</label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="Identity mail" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">Password</label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="Secret access key" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                INITIALIZE ACCESS <i class="fas fa-shield-halved"></i>
+            </button>
+        </form>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="mt-4">
+                {% for category, message in messages %}
+                <div class="p-3 rounded-lg font-size-sm {{ 'bg-emerald-950/30 text-emerald-400 border border-emerald-500/30' if category == 'success' else 'bg-rose-950/30 text-rose-400 border border-rose-500/30' }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="auth-footer mt-6 text-center">
+            <p class="text-secondary font-size-sm mb-4">Validation of credentials is immediate.</p>
+            Existing identity? <a href="{{ url_for('main.login') }}" class="text-blue-400 font-weight-bold">Return to Login</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

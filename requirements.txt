@@ -1,0 +1,5 @@
+flask
+pyodbc
+bcrypt
+psutil
+python-dotenv
